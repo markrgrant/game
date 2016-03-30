@@ -7,6 +7,7 @@ import Data.List (intercalate)
 import Data.Char (toLower)
 import System.Random
 import System.IO (hFlush, stdout, hSetBuffering, stdin, BufferMode(NoBuffering))
+import System.Exit (exitSuccess)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State (State, StateT, put, get, runStateT, evalStateT)
@@ -121,9 +122,17 @@ printRepl game = putStrLn (showGame game) >>
   getInput
 
 
+checkExit :: Game -> IO ()
+checkExit (Game _ _ lives) 
+  | lives == 0 = putStrLn "You have no more lives left. Exiting." >> exitSuccess
+  | otherwise = return ()
+
+
 run :: StateT Game IO ()
-run = get >>= 
+run = get >>=
       liftIO . printRepl >>= \inp ->
+      get >>=
+      liftIO . checkExit >> 
       get >>=
       put . updateGame inp >>
       run
