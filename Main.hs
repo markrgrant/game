@@ -6,7 +6,7 @@
 import Data.List (intercalate)
 import Data.Char (toLower)
 import System.Random
-import System.IO (hFlush, stdout)
+import System.IO (hFlush, stdout, hSetBuffering, stdin, BufferMode(NoBuffering))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State (State, StateT, put, get, runStateT, evalStateT)
@@ -49,16 +49,12 @@ showPosition pieces x y
   where piecesAt = filter (\(Piece _ x' y') -> x==x' && y==y') pieces
 
 
-processInput :: String -> String
-processInput = map toLower
-
-
-updateGame :: String -> Game -> Game
+updateGame :: Char -> Game -> Game
 updateGame cmd game
-  | cmd == "l" = updateLives $ movePieces game R
-  | cmd == "j" = updateLives $ movePieces game L
-  | cmd == "i" = updateLives $ movePieces game U
-  | cmd == "k" = updateLives $ movePieces game D
+  | cmd == 'l' = updateLives $ movePieces game R
+  | cmd == 'j' = updateLives $ movePieces game L
+  | cmd == 'i' = updateLives $ movePieces game U
+  | cmd == 'k' = updateLives $ movePieces game D
   | otherwise  = game
 
 
@@ -105,8 +101,6 @@ intToMove i
   | i == 2 = U
   | i == 3 = D
 
-prompt = "> "
-
 
 initialState :: Game
 initialState = Game  (mkStdGen 0) pieces 3
@@ -117,13 +111,12 @@ initialState = Game  (mkStdGen 0) pieces 3
                   Piece Ghost (boardWidth-1) 0]
 
 
-getInput :: IO String
-getInput = fmap processInput getLine
+getInput :: IO Char
+getInput = hSetBuffering stdin NoBuffering >> fmap toLower getChar
 
 
-printRepl :: Game -> IO String
+printRepl :: Game -> IO Char
 printRepl game = putStrLn (showGame game) >>
-  putStr prompt >>
   hFlush stdout >>
   getInput
 
