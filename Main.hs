@@ -2,15 +2,16 @@
 -- TODO : ghosts should move on their own schedule, separate from
 --        player moves
 -- TODO : support multiplayer
--- TODO : refactoring
 import Data.List (intercalate)
 import Data.Char (toLower)
 import System.Random
-import System.IO (hFlush, stdout, hSetBuffering, stdin, BufferMode(NoBuffering))
+import System.IO (hFlush, stdout, hSetBuffering, stdin,
+                  BufferMode(NoBuffering))
 import System.Exit (exitSuccess)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.State (State, StateT, put, get, runStateT, evalStateT)
+import Control.Monad.Trans.State (State, StateT, put, get, runStateT,
+                                  evalStateT)
 
 
 data Game = Game StdGen [Piece] Lives
@@ -19,14 +20,12 @@ data Piece = Piece PieceType Int Int
 data PieceType = Ghost | Player
 type Pieces = [Piece]
 data Move = U | D | L | R | Q
--- type GameState a = State Game a
 
 
 boardWidth = 10
 boardHeight = 5
 
 
--- Create a string representation of the state of the Game
 showGame :: Game -> String
 showGame (Game _ pieces lives) = showBoard pieces ++ showLives lives
 
@@ -40,6 +39,7 @@ showBoard pieces =
     [0..boardHeight-1] >>= \y ->
     [0..boardWidth] >>= \x ->
     showPosition pieces x y
+
 
 showPosition pieces x y
   | x == boardWidth = "\n"
@@ -68,6 +68,7 @@ updateLives game@(Game g pieces lives) =
   where (Piece Player x y) = head pieces
         ghostsAt = filter (\(Piece Ghost x' y') -> x==x' && y==y') (tail pieces)
 
+
 movePieces :: Game -> Move -> Game
 movePieces (Game g pieces lives) mv = Game g' pieces' lives
   where (pieces', g') = movePieces' (pieces, g) [] mv
@@ -83,6 +84,7 @@ movePiece :: Piece -> StdGen -> Move -> (Piece, StdGen)
 movePiece p@(Piece Player _ _) g mv = movePiece' p g mv
 movePiece p@(Piece Ghost _ _) g mv = movePiece' p g' mv'
   where (mv', g') = randomDir g
+
 
 movePiece' (Piece t x y) g L = (Piece t ((x - 1) `mod` boardWidth) y, g)
 movePiece' (Piece t x y) g R = (Piece t ((x + 1) `mod` boardWidth) y, g)
